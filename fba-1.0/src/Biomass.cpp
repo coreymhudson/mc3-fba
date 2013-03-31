@@ -498,7 +498,7 @@ void fba::Biomass::findNorm(const State & state, int count, double * mean, doubl
 
 void fba::Biomass::updateBoundaries(const State &t0, State &t1, double sampleSize, int samplers) {
     double prim;
-    int i, index, numReactions = m->get_num_reactions();
+    int i, index, distribution, numReactions = m->get_num_reactions();
 	int bit;
 	double mean;
 	double sd;
@@ -563,23 +563,39 @@ void fba::Biomass::updateBoundaries(const State &t0, State &t1, double sampleSiz
 	else{
 		const LPPtr &lp0 = t0.getLP();
     	LPPtr &lp1 = t1.getLP();
-		double lambda = recipMean(t1, numReactions);
+		findNorm(t1, numReactions, &mean, &sd);
+		double lambda = 1.0/mean;
 		for(std::vector<int>::size_type i = 0; i != reactionSubset.size(); i++){
 			index = reactionSubset.at(i).first;     //first: index, second: distribution
+			distribution = reactionSubset.at(i).second;
 			prim = glp_get_col_prim(lp0, index);
 			if(index == change){
-				exp_dist = myrand.exponential(lambda);
-				if(random_bit() == 0){
-					glp_set_col_bnds(lp1, index, GLP_DB, -exp_dist, exp_dist);
-				} else{
+				if(distribution == 0){
+					exp_dist = myrand.exponential(lambda);
 					if(random_bit() == 0){
-						glp_set_col_bnds(lp1, index, GLP_DB, NegInfinity, -exp_dist);
-					} else {
-						glp_set_col_bnds(lp1, index, GLP_DB, exp_dist, PosInfinity);
+						glp_set_col_bnds(lp1, index, GLP_DB, -exp_dist, exp_dist);
+					} else{
+						if(random_bit() == 0){
+							glp_set_col_bnds(lp1, index, GLP_DB, NegInfinity, -exp_dist);
+						} else {
+							glp_set_col_bnds(lp1, index, GLP_DB, exp_dist, PosInfinity);
+						}
+					}
+				} else if(distribution == 1){
+					norm_dist = myrand.normal(mean, sd);
+					norm_dist = fabs(norm_dist);
+					if(random_bit() == 0){
+						glp_set_col_bnds(lp1, index, GLP_DB, -norm_dist, norm_dist);
+					} else{
+						if(random_bit() == 0){
+							glp_set_col_bnds(lp1, index, GLP_DB, NegInfinity, -norm_dist);
+						} else{
+							glp_set_col_bnds(lp1, index, GLP_DB, norm_dist, PosInfinity);
+						}
 					}
 				}
 			} else{
-				if(myrand.rand_open01() < sampleSize){
+				if(fabs(prim) > 0.001 && fabs(prim) < PosInfinity && myrand.rand_open01() < sampleSize){
 					glp_set_col_bnds(lp1, index, GLP_FX, prim, prim);
 				} else {
 					switch(m->get_reaction(index-1)->type) {
