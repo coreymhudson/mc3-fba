@@ -71,6 +71,8 @@ void setOption(std::string option, std::string value) {
         fba::ITERATIONS = atoi(value.c_str());
     } else if (option == "-t") {
         fba::TEMPERATURE = atoi(value.c_str());
+    } else if (option == "-o") {
+	fba::BIOMASS_THRESHOLD = atof(value.c_str());
     } else if (option == "-s") {
         fba::REACTION_SUBSET_FILE = value;
     } else if(option == "-q") {

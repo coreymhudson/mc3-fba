@@ -13,7 +13,7 @@
 #include <sstream>
 #include <vector>
 #include <set>
-
+#include <cstring>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -44,6 +44,9 @@ namespace fba {
         
     extern double   LOCAL_SAMPLE_SIZE;          //local state sample size
     extern double   GLOBAL_SAMPLE_SIZE;         //global state sample size
+    
+    extern double   MIN_GROWTH; 		//max growth, i.e., biomass
+    extern double   BIOMASS_THRESHOLD;     	//biomass threshold
 
     extern std::string  REACTION_FILE;          //reactions input file
     extern std::string  BOUNDARY_FILE;          //boundary input file
@@ -163,7 +166,7 @@ public:
 
     void printRXNS();
     void printSol(const State &state, const int gen, const int i);
-
+    double optimum_objective_value();
     
     private:
     int                 non_zero_coeff;

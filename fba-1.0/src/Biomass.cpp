@@ -22,6 +22,9 @@ namespace fba {
     double LOCAL_SAMPLE_SIZE = 0.01;     //local state sample size
     double GLOBAL_SAMPLE_SIZE = 0.1;     //global state sample size
 
+    double MIN_GROWTH;
+    double BIOMASS_THRESHOLD = 0.75;
+
     std::string  REACTION_FILE = "";     //reactions input file
     std::string  BOUNDARY_FILE = "";     //boundary input file
 
@@ -265,7 +268,13 @@ void fba::Biomass::optimizeBiomass( ) {
             reactionNames.clear();
 
         }
-        optimizeMCMC();
+	const double ov = optimum_objective_value();
+	if (ov != -1){
+		MIN_GROWTH = ov * BIOMASS_THRESHOLD;
+	        optimizeMCMC();
+	} else {
+		perror("warning: solution not feasible");
+	}
     }
 }
 
@@ -815,6 +824,20 @@ void fba::Biomass::printSol(const State &state, const int gen, const int thread)
 		m->get_reaction(i-1)->flux = val;
     }
     std::cout << std::endl;
+}
+
+double fba::Biomass::optimum_objective_value(){
+	glp_prob* lp = glp_create_prob();
+	glp_copy_prob(lp, states[0]->getLP(), true);
+	glp_smcp params;
+	glp_init_smcp(&params);
+	params.msg_lev = GLP_MSG_OFF;
+	params.tm_lim = 1000;
+	glp_simplex(lp, &params);
+	double objective_value = glp_get_obj_val(lp);
+	int sol_status = glp_get_prim_stat(lp);
+	glp_delete_prob(lp);
+	return(sol_status == GLP_FEAS) ? objective_value : -1;
 }
 
 pid_t fba::getTerminatedChildProcess(int childProcessid) {
