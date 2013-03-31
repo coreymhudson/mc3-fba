@@ -30,16 +30,15 @@
 # -q on/off flag for option s - default 0						     					#
 #########################################################################################
 
+-r /Users/coreyhudson/Desktop/fba_fork/google_code/mc3-fba/fba-1.0/example/Reactions.txt
 
--r /Users/andi/Documents/Projects/FBA/Source/Palsson_reactions_epa_rr_biomass.txt
-
--b /Users/andi/Documents/Projects/FBA/Source/Palsson_bounds_RDA_inputs_colorectal_cancer.txt
+-b /Users/coreyhudson/Desktop/fba_fork/google_code/mc3-fba/fba-1.0/example/Bounds.txt
 
 -f 0
 
 -e 100
 
--n 4
+-n 2
 
 -l 0.01
 
@@ -49,6 +48,8 @@
 
 -t 0.01
 
--s /Users/andi/Documents/Projects/FBA/Source/SubsetReactions.txt
+-o 0.75
+
+-s /Users/coreyhudson/Desktop/fba_fork/google_code/mc3-fba/fba-1.0/example/SubsetReactions.txt
 
 -q 1
